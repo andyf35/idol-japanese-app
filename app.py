@@ -81,28 +81,29 @@ with tab1:
         else:
             st.divider()
             
-            st.subheader("📖 假名標音模式 (最終穩定版)")
+           st.subheader("📖 假名標音模式 (純淨無殘影版)")
             
-            # 魔法第一步：用「|」符號把 今日 和 は 隔開，騙過系統
+            # 魔法第一步：一樣用「|」符號騙過系統對「今日は」的誤判
             safe_text = email_text.replace("今日は", "今日|は")
             
             result = kks.convert(safe_text)
-            html_text = "<div style='font-size: 1.2rem; line-height: 2.5;'>"
+            
+            # 加上 word-break 讓長句子自動柔和換行，不逼死手機瀏覽器
+            html_text = "<div style='font-size: 1.2rem; line-height: 2.5; word-break: break-word;'>"
             
             for item in result:
                 orig = item['orig']
                 hira = item['hira']
                 
-                # 如果原字跟讀音一樣（例如純假名或標點符號），就不標音
                 if orig == hira:
                     html_text += orig
                 else:
-                    # 加入 inline-block 解決 Safari 的疊字 Bug
-                    html_text += f"<ruby style='display: inline-block;'>{orig}<rt>{hira}</rt></ruby>"
+                    # 【關鍵修復】：拿掉惹禍的 display: inline-block，只留下最單純的 ruby 標籤！
+                    html_text += f"<ruby>{orig}<rt>{hira}</rt></ruby>"
             
             html_text += "</div>"
             
-            # 魔法第二步：把剛剛用來騙系統的「|」符號抽掉，不留痕跡！
+            # 魔法第二步：把「|」符號抽掉，不留痕跡
             html_text = html_text.replace("|", "")
             
             st.markdown(html_text, unsafe_allow_html=True)
