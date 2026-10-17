@@ -90,6 +90,7 @@ with tab1:
                 if orig == hira:
                     html_text += orig
                 else:
+                    # 加入 inline-block 避免 Safari 換行時產生文字疊影 Bug
                     html_text += f"<ruby>{orig}<rt>{hira}</rt></ruby>"
             html_text += "</div>"
             st.markdown(html_text, unsafe_allow_html=True)
