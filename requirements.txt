@@ -1,0 +1,7 @@
+streamlit
+pandas
+janome
+pykakasi
+requests
+beautifulsoup4
+gtts
