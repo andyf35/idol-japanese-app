@@ -81,26 +81,27 @@ with tab1:
         else:
             st.divider()
             
-            st.subheader("📖 假名標音模式 (雙劍合璧版)")
+            st.subheader("📖 假名標音模式 (終極精準版)")
             html_text = "<div style='font-size: 1.2rem; line-height: 2.5;'>"
             
-            # 第一劍：讓 janome 把句子精準切成單字 (今日 / は / RESET / 昼夜 / 公演)
+            # 直接讓懂文法的 janome 負責所有事
             for token in t.tokenize(email_text):
                 surface = token.surface
+                reading = token.reading
                 
-                # 第二劍：讓 pykakasi 對切好的單字進行標音
-                result = kks.convert(surface)
+                # 偵測這個詞裡面有沒有包含漢字
+                has_kanji = any('\u4e00' <= c <= '\u9faf' for c in surface)
                 
-                for item in result:
-                    orig = item['orig']
-                    hira = item['hira']
+                # 如果有漢字，且 janome 有抓到讀音
+                if has_kanji and reading and reading != '*':
+                    # janome 給的是片假名 (例如 キョウ)，我們把它轉成平假名 (きょう)
+                    hira = "".join([i['hira'] for i in kks.convert(reading)])
+                    # 加上 inline-block 避免 Safari 疊字
+                    html_text += f"<ruby style='display: inline-block;'>{surface}<rt>{hira}</rt></ruby>"
+                else:
+                    # 如果是純假名或標點符號，就不標音直接印出來
+                    html_text += surface
                     
-                    if orig == hira:
-                        html_text += orig
-                    else:
-                        # 加上 inline-block 確保 Safari 不會出現疊字 Bug
-                        html_text += f"<ruby style='display: inline-block;'>{orig}<rt>{hira}</rt></ruby>"
-                        
             html_text += "</div>"
             st.markdown(html_text, unsafe_allow_html=True)
             st.divider()
