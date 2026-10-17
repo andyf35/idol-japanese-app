@@ -81,31 +81,33 @@ with tab1:
         else:
             st.divider()
             
-            st.subheader("📖 假名標音模式 (純淨無殘影版)")
+            st.subheader("📖 假名與羅馬拼音對照版 (上下分層流)")
             
-            # 魔法第一步：用「|」符號騙過系統對「今日は」的誤判
+            # 1. 顯示乾淨的原文字幕區塊
+            st.markdown("**【原文內容】**")
+            st.markdown(f"<div style='background-color: #f8f9fa; padding: 15px; border-radius: 8px; font-size: 1.1rem; line-height: 1.8;'>{email_text}</div>", unsafe_allow_html=True)
+            
+            # 2. 處理平假名與羅馬拼音轉換
             safe_text = email_text.replace("今日は", "今日|は")
-            
             result = kks.convert(safe_text)
             
-            # 加上 word-break 讓長句子自動柔和換行
-            html_text = "<div style='font-size: 1.2rem; line-height: 2.5; word-break: break-word;'>"
-            
+            hira_line = ""
+            romaji_line = ""
             for item in result:
-                orig = item['orig']
-                hira = item['hira']
+                hira_line += item['hira']
+                romaji_line += item['hepburn'] + " "
                 
-                if orig == hira:
-                    html_text += orig
-                else:
-                    html_text += f"<ruby>{orig}<rt>{hira}</rt></ruby>"
+            hira_line = hira_line.replace("|", "")
             
-            html_text += "</div>"
+            # 3. 顯示平假名讀音
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("**【平假名對照】**")
+            st.info(hira_line)
             
-            # 魔法第二步：把「|」符號抽掉，不留痕跡
-            html_text = html_text.replace("|", "")
+            # 4. 顯示羅馬拼音 (方便 Talk 會直接唸)
+            st.markdown("**【羅馬拼音 (Talk會直讀)】**")
+            st.success(romaji_line)
             
-            st.markdown(html_text, unsafe_allow_html=True)
             st.divider()
 
             st.subheader("🔍 單字解析列表 (附羅馬拼音)")
