@@ -81,14 +81,14 @@ with tab1:
         else:
             st.divider()
             
-           st.subheader("📖 假名標音模式 (純淨無殘影版)")
+          st.subheader("📖 假名標音模式 (純淨無殘影版)")
             
-            # 魔法第一步：一樣用「|」符號騙過系統對「今日は」的誤判
+            # 魔法第一步：用「|」符號騙過系統對「今日は」的誤判
             safe_text = email_text.replace("今日は", "今日|は")
             
             result = kks.convert(safe_text)
             
-            # 加上 word-break 讓長句子自動柔和換行，不逼死手機瀏覽器
+            # 加上 word-break 讓長句子自動柔和換行
             html_text = "<div style='font-size: 1.2rem; line-height: 2.5; word-break: break-word;'>"
             
             for item in result:
@@ -98,7 +98,6 @@ with tab1:
                 if orig == hira:
                     html_text += orig
                 else:
-                    # 【關鍵修復】：拿掉惹禍的 display: inline-block，只留下最單純的 ruby 標籤！
                     html_text += f"<ruby>{orig}<rt>{hira}</rt></ruby>"
             
             html_text += "</div>"
