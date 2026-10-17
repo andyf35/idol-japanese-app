@@ -81,7 +81,7 @@ with tab1:
         else:
             st.divider()
             
-          st.subheader("📖 假名標音模式 (純淨無殘影版)")
+            st.subheader("📖 假名標音模式 (純淨無殘影版)")
             
             # 魔法第一步：用「|」符號騙過系統對「今日は」的誤判
             safe_text = email_text.replace("今日は", "今日|は")
