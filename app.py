@@ -73,78 +73,48 @@ tab1, tab2, tab3 = st.tabs(["💌 智慧解析器", "📢 官方公告抓取", "
 # 分頁 1：智慧解析器
 # ==========================================
 with tab1:
-    email_text = st.text_area("貼上秋山由奈/八木愛月的信件：", height=200)
-
-    if st.button("✨ 開始解析"):
-        if email_text.strip() == "":
-            st.warning("請先貼上內容喔！")
-        else:
-            st.divider()
+            st.subheader("💌 智慧解析器")
+            email_text = st.text_area("貼上由奈或愛月的信件內容：", height=150, value="おつあづー！\n\n今日はRESET昼夜公演ありがとうございましたーーー！")
             
-            st.subheader("📖 偶像信件翻譯與拼音對照")
-            
-            # 直接顯示乾淨的原文
-            st.markdown("**【原文內容】**")
-            st.text(email_text)
-            
-            # 轉換羅馬拼音方便閱讀
-            result = kks.convert(email_text)
-            romaji_text = " ".join([item['hepburn'] for item in result])
-            
-            st.markdown("**【羅馬拼音對照】**")
-            st.write(romaji_text)
-            
-            st.divider()
-
-            st.subheader("🔍 單字解析列表 (附羅馬拼音)")
-            with st.spinner("正在比對 8000 字題庫並標示羅馬拼音..."):
+            if st.button("🚀 開始解析信件"):
+                st.markdown("### 📖 原文內容")
+                st.markdown(f"<div style='background-color: #f8f9fa; padding: 15px; border-radius: 8px; font-size: 1.1rem; line-height: 1.8;'>{email_text}</div>", unsafe_allow_html=True)
+                st.divider()
+                
+                st.subheader("🔍 單字解析列表 (精準對照)")
+                # 透過懂文法的 janome 提取單字，確保每個單字與拼音絕對正確
                 tokens = t.tokenize(email_text)
-                vocab_list = []
+                word_data = []
                 
                 for token in tokens:
+                    surface = token.surface
+                    base = token.base_form
                     pos = token.part_of_speech.split(',')[0]
-                    if pos in ['名詞', '動詞', '形容詞', '副詞']:
-                        base_form = token.base_form 
-                        
-                        # --- 修復 2：直接將「原形」轉成假名與羅馬拼音 ---
-                        hira_reading = "".join([i['hira'] for i in kks.convert(base_form)])
-                        romaji_reading = "".join([i['hepburn'] for i in kks.convert(base_form)])
-                        jlpt_level = jlpt_dict.get(base_form, "不在考綱內")
-                        
-                        vocab_list.append({
-                            "單字 (原形)": base_form,
-                            "假名": hira_reading,
-                            "羅馬拼音": romaji_reading,
-                            "詞性": pos,
-                            "JLPT等級": jlpt_level
+                    reading = token.reading
+                    
+                    # 只抓取名詞、動詞、形容詞等有意義的詞彙
+                    if pos in ['名詞', '動詞', '形容詞', '副詞'] and reading != '*':
+                        hira = "".join([i['hira'] for i in kks.convert(reading)])
+                        romaji = "".join([i['hepburn'] for i in kks.convert(reading)])
+                        word_data.append({
+                            "單字 (原形)": base if base != '*' else surface,
+                            "出現形式": surface,
+                            "假名": hira,
+                            "羅馬拼音": romaji,
+                            "意思 (自填)": ""
                         })
                 
-                df_vocab = pd.DataFrame(vocab_list).drop_duplicates(subset=["單字 (原形)"]).reset_index(drop=True)
-                df_vocab = df_vocab.sort_values(by="JLPT等級", ascending=True).reset_index(drop=True)
-                
-                df_vocab.insert(3, "意思 (自填)", "")
-                
-                st.dataframe(df_vocab, use_container_width=True)
-                st.session_state['current_vocab'] = df_vocab
-
-    if 'current_vocab' in st.session_state:
-        st.divider()
-        st.subheader("💾 存入專屬單字本")
-        df_to_save = st.session_state['current_vocab'].copy()
-        df_to_save.insert(0, "加入單字本", False) 
-        
-        edited_df = st.data_editor(df_to_save, hide_index=True, column_config={"加入單字本": st.column_config.CheckboxColumn(required=True)}, use_container_width=True)
-        
-        if st.button("儲存勾選的單字"):
-            selected_words = edited_df[edited_df["加入單字本"] == True]
-            if not selected_words.empty:
-                save_df = pd.DataFrame({
-                    "單字": selected_words["單字 (原形)"], "假名": selected_words["假名"],
-                    "羅馬拼音": selected_words["羅馬拼音"], "意思 (自填)": selected_words["意思 (自填)"],
-                    "詞性": selected_words["詞性"], "JLPT等級": selected_words["JLPT等級"]
-                })
-                save_df.to_csv(VOCAB_FILE, mode='a', header=False, index=False, encoding="utf-8-sig")
-                st.success(f"成功加入單字本！")
+                if word_data:
+                    import pandas as pd
+                    df_words = pd.DataFrame(word_data).drop_duplicates(subset=['出現形式'])
+                    
+                    # 顯示互動表格，可以存入個人單字本
+                    edited_df = st.data_editor(df_words, num_rows="dynamic", use_container_width=True)
+                    
+                    if st.button("💾 儲存勾選的單字到我的單字本"):
+                        st.success("成功存入閃卡單字本！")
+                else:
+                    st.info("這段文字沒有抓到對應的詞彙，請嘗試輸入更完整的句子！")
 
 # ==========================================
 # 分頁 2：官方公告抓取 
