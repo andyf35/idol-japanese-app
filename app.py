@@ -81,28 +81,30 @@ with tab1:
         else:
             st.divider()
             
-            st.subheader("📖 假名標音模式 (終極精準版)")
+            st.subheader("📖 假名標音模式 (最終穩定版)")
+            
+            # 魔法第一步：用「|」符號把 今日 和 は 隔開，騙過系統
+            safe_text = email_text.replace("今日は", "今日|は")
+            
+            result = kks.convert(safe_text)
             html_text = "<div style='font-size: 1.2rem; line-height: 2.5;'>"
             
-            # 直接讓懂文法的 janome 負責所有事
-            for token in t.tokenize(email_text):
-                surface = token.surface
-                reading = token.reading
+            for item in result:
+                orig = item['orig']
+                hira = item['hira']
                 
-                # 偵測這個詞裡面有沒有包含漢字
-                has_kanji = any('\u4e00' <= c <= '\u9faf' for c in surface)
-                
-                # 如果有漢字，且 janome 有抓到讀音
-                if has_kanji and reading and reading != '*':
-                    # janome 給的是片假名 (例如 キョウ)，我們把它轉成平假名 (きょう)
-                    hira = "".join([i['hira'] for i in kks.convert(reading)])
-                    # 加上 inline-block 避免 Safari 疊字
-                    html_text += f"<ruby style='display: inline-block;'>{surface}<rt>{hira}</rt></ruby>"
+                # 如果原字跟讀音一樣（例如純假名或標點符號），就不標音
+                if orig == hira:
+                    html_text += orig
                 else:
-                    # 如果是純假名或標點符號，就不標音直接印出來
-                    html_text += surface
-                    
+                    # 加入 inline-block 解決 Safari 的疊字 Bug
+                    html_text += f"<ruby style='display: inline-block;'>{orig}<rt>{hira}</rt></ruby>"
+            
             html_text += "</div>"
+            
+            # 魔法第二步：把剛剛用來騙系統的「|」符號抽掉，不留痕跡！
+            html_text = html_text.replace("|", "")
+            
             st.markdown(html_text, unsafe_allow_html=True)
             st.divider()
 
