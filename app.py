@@ -81,32 +81,18 @@ with tab1:
         else:
             st.divider()
             
-            st.subheader("📖 假名與羅馬拼音對照版 (上下分層流)")
+            st.subheader("📖 偶像信件翻譯與拼音對照")
             
-            # 1. 顯示乾淨的原文字幕區塊
+            # 直接顯示乾淨的原文
             st.markdown("**【原文內容】**")
-            st.markdown(f"<div style='background-color: #f8f9fa; padding: 15px; border-radius: 8px; font-size: 1.1rem; line-height: 1.8;'>{email_text}</div>", unsafe_allow_html=True)
+            st.text(email_text)
             
-            # 2. 處理平假名與羅馬拼音轉換
-            safe_text = email_text.replace("今日は", "今日|は")
-            result = kks.convert(safe_text)
+            # 轉換羅馬拼音方便閱讀
+            result = kks.convert(email_text)
+            romaji_text = " ".join([item['hepburn'] for item in result])
             
-            hira_line = ""
-            romaji_line = ""
-            for item in result:
-                hira_line += item['hira']
-                romaji_line += item['hepburn'] + " "
-                
-            hira_line = hira_line.replace("|", "")
-            
-            # 3. 顯示平假名讀音
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown("**【平假名對照】**")
-            st.info(hira_line)
-            
-            # 4. 顯示羅馬拼音 (方便 Talk 會直接唸)
-            st.markdown("**【羅馬拼音 (Talk會直讀)】**")
-            st.success(romaji_line)
+            st.markdown("**【羅馬拼音對照】**")
+            st.write(romaji_text)
             
             st.divider()
 
